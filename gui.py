@@ -37,7 +37,6 @@ def draw_board(screen: Surface, pos_x: int, pos_y: int, elem_size: int, board: B
             pygame.draw.circle(screen, negative_color, (position[0] + elem_size // 2, position[1] + elem_size // 2), r)
 
 
-
 def game_loop(screen: Surface, board: BoardState, ai: AI):
     grid_size = screen.get_size()[0] // 8
     list_state = [str(board.board)]
@@ -79,12 +78,12 @@ def game_loop(screen: Surface, board: BoardState, ai: AI):
 
                 if event.key == pygame.K_l:
                     field = np.zeros(shape=(8, 8), dtype=np.int8)
-                    f = open("save.txt", "r")
-                    for i in range(0, 8):
-                        lst = f.readline().split()
-                        for j in range(0, 8):
-                            field[i][j] = lst[j]
-                    board = BoardState(field, 1)
+                    with open("save.txt", "r") as f:
+                        for i in range(0, 8):
+                            lst = f.readline().split()
+                            for j in range(0, 8):
+                                field[i][j] = lst[j]
+                        board = BoardState(field, 1)
                 if event.key == pygame.K_a:
                     automatic = True
 

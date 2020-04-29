@@ -10,7 +10,7 @@ class PositionEvaluation:
         a = float(0)
         for i in range(0, 8):
             for j in range(0, 8):
-                a += board.board[i, j] * board.board[i, j] * board.board[i, j]
+                a += board.board[i, j] ** 3
                 if board.board[i, j] == 1:
                     a += (7 - i) / 10
                 if board.board[i, j] == -1:

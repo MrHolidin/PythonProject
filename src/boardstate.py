@@ -1,4 +1,5 @@
 import numpy as np
+from itertools import product
 import string
 from typing import Optional, List
 
@@ -81,7 +82,7 @@ class BoardState:
         if not self.can_basic_move(from_x, from_y, to_x, to_y) or (self.can_eat and not self.is_eating_move(from_x, from_y, to_x, to_y)):
             return None
         # todo more validation here
-        Eat = self.is_eating_move(from_x, from_y, to_x, to_y)
+        eat = self.is_eating_move(from_x, from_y, to_x, to_y)
         result = self.copy()
         result.board[to_y, to_x] = result.board[from_y, from_x]
         dx = (to_x - from_x > 0) * 2 - 1
@@ -93,9 +94,9 @@ class BoardState:
         if to_y == 0:
             result.board[to_y, to_x] = 2
         result.choosed = position(to_x, to_y)
-        if Eat:
+        if eat:
             result.update()
-        if not (Eat and result.can_eat):
+        if not (eat and result.can_eat):
             result.turn_ended = True
         return result
 
@@ -107,45 +108,47 @@ class BoardState:
             new_board = new_board.inverted()
         return new_board
 
-    def save(self, file_name = "save.txt"):
-        f = open(file_name, 'w')  # открытие в режиме записи
-        for i in range(0, 8):
-            out = ''
-            for j in range(0, 8):
-                out = out + str(self.board[i, j]) + ' '
-            f.write(out + '\n')
-        f.close()
+    def save(self, file_name="save.txt"):
+        with open(file_name, 'w') as f:  # открытие в режиме записи
+            for i in range(0, 8):
+                out = ''
+                for j in range(0, 8):
+                    out = out + str(self.board[i, j]) + ' '
+                f.write(out + '\n')
+
+    def move_sources(self):
+        ans = list()
+        for from_y, from_x in product(range(8), range(8)):
+            if self.board[from_y, from_x] > 0 and (self.choosed == None or (self.choosed.x == from_x and self.choosed.y == from_y)):
+                ans.append([from_y, from_x])
+        return ans
 
     def has_eating_move(self) -> bool:
-        for from_y in range(0, 8):
-            for from_x in range(0, 8):
-                if self.board[from_y, from_x] > 0 and (self.choosed == None or (self.choosed.x == from_x and self.choosed.y == from_y)):
-                    if self.board[from_y, from_x] == 1:
-                        may_be = []
-                        if from_y > 1:
-                            may_be.append(from_y - 2)
-                        if from_y < 6:
-                            may_be.append(from_y + 2)
-                    else:
-                        may_be = range(0, 8)
-                    for to_y in may_be:
-                        for to_x in [from_x + from_y - to_y, from_x - from_y + to_y]:
-                            if 0 <= to_x < 8:
-                                if self.can_basic_move(from_x, from_y, to_x, to_y) and self.is_eating_move(from_x, from_y, to_x, to_y):
-                                    return True
+        for from_y, from_x in self.move_sources():
+            if self.board[from_y, from_x] == 1:
+                may_be = []
+                if from_y > 1:
+                    may_be.append(from_y - 2)
+                if from_y < 6:
+                    may_be.append(from_y + 2)
+            else:
+                may_be = range(0, 8)
+            for to_y in may_be:
+                for to_x in [from_x + from_y - to_y, from_x - from_y + to_y]:
+                    if 0 <= to_x < 8:
+                        if self.can_basic_move(from_x, from_y, to_x, to_y) and self.is_eating_move(from_x, from_y, to_x, to_y):
+                            return True
         return False
 
     def get_possible_moves(self) -> List['BoardState']:
         ans = []
-        for from_y in range(0, 8):
-            for from_x in range(0, 8):
-                if self.board[from_y, from_x] > 0 and (self.choosed == None or (self.choosed.x == from_x and self.choosed.y == from_y)):
-                    for to_y in range(0, 8):
-                        for to_x in [from_x + from_y - to_y, from_x - from_y + to_y]:
-                            if 0 <= to_x < 8:
-                                new_board = self.do_turn(from_x, from_y, to_x, to_y)
-                                if new_board != None:
-                                    ans.append(new_board)
+        for from_y, from_x in self.move_sources():
+            for to_y in range(0, 8):
+                for to_x in [from_x + from_y - to_y, from_x - from_y + to_y]:
+                    if 0 <= to_x < 8:
+                        new_board = self.do_turn(from_x, from_y, to_x, to_y)
+                        if new_board != None:
+                            ans.append(new_board)
         return ans # todo
 
     def count_obj(self, player, type):
