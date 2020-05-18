@@ -47,29 +47,25 @@ class BoardState:
             if from_y - to_y == -1:
                 return False
         if self.board[from_y, from_x] == 2:
-            dx = (to_x - from_x > 0) * 2 - 1
-            dy = (to_y - from_y > 0) * 2 - 1
-            temp_x = from_x + dx
-            temp_y = from_y + dy
-            while temp_x != to_x and to_y != temp_y:
+            dx = 1 if to_x > from_x else -1
+            dy = 1 if to_y > from_y else -1
+            for temp_x, temp_y in zip(range(min(from_x + dx, to_x), max(from_x + dx, to_x)), range(min(from_y + dy, to_y), max(from_y + dy, to_y))):
                 if self.board[temp_y, temp_x] > 0:
                     return False
-                temp_x = temp_x + dx
-                temp_y = temp_y + dy
         if self.choosed != None and self.choosed.x != from_x and self.choosed.y != from_y:
             return False
         return True
 
     def is_eating_move(self, from_x, from_y, to_x, to_y):
-        dx = (to_x - from_x > 0) * 2 - 1
-        dy = (to_y - from_y > 0) * 2 - 1
+        dx = 1 if to_x > from_x else -1
+        dy = 1 if to_y > from_y else -1
         temp_x = from_x + dx
         temp_y = from_y + dy
         while temp_x != to_x and to_y != temp_y:
             if self.board[temp_y, temp_x] < 0:
                 return True
-            temp_x = temp_x + dx
-            temp_y = temp_y + dy
+            temp_x += dx
+            temp_y += dy
         return False
 
     def update(self):
@@ -85,12 +81,12 @@ class BoardState:
         eat = self.is_eating_move(from_x, from_y, to_x, to_y)
         result = self.copy()
         result.board[to_y, to_x] = result.board[from_y, from_x]
-        dx = (to_x - from_x > 0) * 2 - 1
-        dy = (to_y - from_y > 0) * 2 - 1
+        dx = 1 if to_x > from_x else -1
+        dy = 1 if to_y > from_y else -1
         while from_x != to_x and to_y != from_y:
             result.board[from_y, from_x] = 0
-            from_x = from_x + dx
-            from_y = from_y + dy
+            from_x += dx
+            from_y += dy
         if to_y == 0:
             result.board[to_y, to_x] = 2
         result.choosed = position(to_x, to_y)
@@ -113,7 +109,7 @@ class BoardState:
             for i in range(0, 8):
                 out = ''
                 for j in range(0, 8):
-                    out = out + str(self.board[i, j]) + ' '
+                    out += str(self.board[i, j]) + ' '
                 f.write(out + '\n')
 
     def move_sources(self):

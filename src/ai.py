@@ -29,7 +29,7 @@ class AI:
         if deep == 0:
             return self.position_evaluation(board)
         moves = board.get_possible_moves()
-        self.cnt = self.cnt + 1
+        self.cnt += 1
         if len(moves) == 0:
             return 0
         a = max(self.position_analis(b, deep - 1) * b.current_player * board.current_player for b in moves)
