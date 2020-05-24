@@ -16,7 +16,7 @@ class PositionEvaluation:
                 if board.board[i, j] == -1:
                     a -= i / 10
         #todo
-        return a
+        return a * board.current_player
 
 
 class AI:
@@ -25,20 +25,35 @@ class AI:
         self.depth: int = search_depth
         self.cnt = 0
 
-    def position_analis(self, board: BoardState, deep) -> float:
+    def position_analis(self, board: BoardState, deep, alpha, beta) -> float:
         if deep == 0:
             return self.position_evaluation(board)
         moves = board.get_possible_moves()
         self.cnt += 1
         if len(moves) == 0:
             return 0
-        a = max(self.position_analis(b, deep - 1) * b.current_player * board.current_player for b in moves)
-        return a
+        optimal = alpha if board.current_player == 1 else beta
+        for x in moves:
+            b = self.position_analis(x, deep - 1, alpha, beta)
+            if board.current_player == 1 and b > beta:
+                return beta
+            if board.current_player == -1 and b < alpha:
+                return alpha
+            if board.current_player == 1:
+                alpha = max(alpha, b)
+                if b > optimal:
+                    optimal = b
+            if board.current_player == -1:
+                beta = min(beta, b)
+                if b < optimal:
+                    optimal = b
+        return optimal
 
     def next_move(self, board: BoardState) -> Optional[BoardState]:
         moves = board.get_possible_moves()
         self.cnt = 0
         if len(moves) == 0:
             return None
-        return max(moves, key=lambda b: self.position_analis(b, self.depth - 1) * b.current_player * board.current_player)
+        l = max(moves, key=lambda b: self.position_analis(b, self.depth - 1, -1000, 1000) * board.current_player)
+        return l
 
